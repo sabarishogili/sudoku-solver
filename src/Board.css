@@ -1,0 +1,26 @@
+.puzzle-table {
+width: 50%,
+
+}
+
+.MuiTableCell-body {
+padding: 0px;
+text-align: center;
+border: 1px solid;
+}
+
+td:nth-of-type(3n) {
+    border-right: solid;
+}
+
+tr:nth-of-type(3n) td {
+    border-bottom: solid;
+}
+
+table {
+    border: solid;
+}
+
+.MuiPaper-elevation1{
+padding: 5px;
+}
