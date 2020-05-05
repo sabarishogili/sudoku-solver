@@ -1,8 +1,8 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+live demo: https://sabarishogili.github.io/sudoku-solver/
 
-## Available Scripts
+#Sudoku Solver
 
-In the project directory, you can run:
+
 
 ### `yarn start`
 
