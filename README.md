@@ -1,6 +1,6 @@
 live demo: https://sabarishogili.github.io/sudoku-solver/
 
-#Sudoku Solver
+# Sudoku Solver
 An AI educational experiment of solving SUDOKU in react. 
 
 
