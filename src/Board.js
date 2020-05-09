@@ -8,8 +8,10 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
-import Container from '@material-ui/core/Container';
 import Paper from '@material-ui/core/Paper';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 
 class Board extends React.Component {
 constructor(props) {
@@ -24,6 +26,7 @@ constructor(props) {
                 Array(9).fill(null),
                 Array(9).fill(null),
                 Array(9).fill(null)],
+    currentOperation: ["Click Perform to Solve the Puzzle."],
     };
 
     this.state.data[0][0] = 6;
@@ -49,7 +52,6 @@ constructor(props) {
     this.state.data[5][4] = 1;
     this.state.data[5][5] = 7;
     this.state.data[5][6] = 5;
-
     this.state.data[6][0] = 4;
     this.state.data[6][2] = 5;
     this.state.data[6][3] = 1;
@@ -63,18 +65,146 @@ constructor(props) {
     this.state.data[8][8] = 2;
 
     this.myClick = this.myClick.bind(this);
+    this.solvePuzzle = this.solvePuzzle.bind(this);
+    this.playProbability = this.playProbability.bind(this);
     this.handleChange = this.handleChange.bind(this);
   }
 
-myClick() {
 
-//alert(this.state.data);
+revolver(i) {
+return i - (i%3);
+}
+
+removeItemOnce(arr, value) {
+    var index = arr.indexOf(value);
+       if (index > -1) {
+           arr.splice(index, 1);
+       }
+       return arr;
+}
+
+solvePuzzle(data) {
+    var countUnsolvedCells = 0;
+    var board;
+    var countPlaced = 0;
+
+    if(data === undefined) {
+        board = this.state.data;
+    }
+    board.map((col,rowIndex) =>
+        col
+        .map((element, colIndex) => {
+             if(board[rowIndex][colIndex] === null || Array.isArray(board[rowIndex][colIndex])) {
+                //block
+                var startRow = this.revolver(rowIndex), endRow = startRow+2, i;
+                var startCol = this.revolver(colIndex), endCol = startCol+2, j;
+                var possibilities  = board[rowIndex][colIndex] === null ? [1,2,3,4,5,6,7,8,9] : board[rowIndex][colIndex];
+
+                countUnsolvedCells++;
+                for(i=startRow; i<=endRow;i++) {
+                    for(j=startCol; j<=endCol;j++) {
+                    if(board[i][j] >=1 && board[i][j] <=9 ) {
+                            possibilities = this.removeItemOnce(possibilities, board[i][j]);
+                        }
+                    }
+                }
+                //row
+                for(i=0;i<9;i++) {
+                    if(i !== rowIndex && board[i][colIndex] != null && !Array.isArray(board[i][colIndex])) {
+                                                possibilities = this.removeItemOnce(possibilities, board[i][colIndex]);
+                    }
+                }
+                //col
+                for(j=0;j<9;j++) {
+                    if(j !== colIndex && board[rowIndex][j] != null && !Array.isArray(board[rowIndex][j])) {
+                                                possibilities = this.removeItemOnce(possibilities, board[rowIndex][j]);
+                    }
+                }
+                if(possibilities.length === 1) {
+                    board[rowIndex][colIndex] = possibilities[0];
+                    countPlaced++;
+                    this.setState({currentOperation:
+                        [ ...this.state.currentOperation,
+                            "setting value at:["+rowIndex+"]["+colIndex+"] to " + board[rowIndex][colIndex]]});
+                    document.getElementById('basic_'+rowIndex+'_'+colIndex).style.color = "green";
+                } else if(possibilities.length > 0) {
+                    board[rowIndex][colIndex] = possibilities;
+                }
+             }
+        })
+    )
+
+    if (data === undefined) {
+        if (countPlaced === 0 && countUnsolvedCells > 0) {
+            this.playProbability();
+            this.solvePuzzle();
+        } else if (countUnsolvedCells > 0) {
+            this.solvePuzzle();
+        }
+        this.setState({data: board});
+    } else {
+        if (countPlaced === 0 && countUnsolvedCells > 0) {
+            this.playProbability(data);
+            this.solvePuzzle(data);
+        } else if (countUnsolvedCells > 0) {
+            this.solvePuzzle(data);
+        } else if (countUnsolvedCells === 0) {
+            this.setState({data: board});
+        }
+
+    }
+
+    console.log(JSON.stringify(board));
+}
+
+playProbability(data) {
+var board;
+var possibilities = [1,2,3,4,5,6,7,8,9];
+var row, col;
+
+if(data === undefined) {
+        board = this.state.data;
+    }
+
+board.map((row, rowIndex) => {
+    row.map((ele, colIndex)=>{
+        if(Array.isArray(board[rowIndex][colIndex]) && board[rowIndex][colIndex].length < possibilities.length) {
+            possibilities = board[rowIndex][colIndex];
+            row = rowIndex;
+            col = colIndex;
+        }
+    })
+})
+
+possibilities.foreach(function(val) {
+    var data = [...board];
+    data[row][col] = val;
+    this.solvePuzzle(data);
+}, this);
 
 }
 
+myClick() {
+this.solvePuzzle();
+}
+
 handleChange(rowIndex, colIndex, event) {
-    this.state.data[rowIndex][colIndex] = event.target.value;
+    this.state.data[rowIndex][colIndex] = parseInt(event.target.value);
     this.forceUpdate();
+    /*var newValue = event.target.value;
+    this.setState(({ data }) => ({ data:
+      data.map((row, i) => {
+        row.map((tile, j) => {
+          if (i === rowIndex && j === colIndex) {
+          var parsed = parseInt(newValue);
+            return parsed === Number.NAN? null: parsed ;
+          } else {
+            return tile;
+          }
+        })
+      })
+    }));*/
+
 }
 
 render() {
@@ -103,6 +233,16 @@ render() {
             </TableBody>
             </Table>
             <Typography component="div" align="right">
+                <Typography component="div" align="center">
+                    <List component="nav" aria-label="main transactions list">
+
+                    {this.state.currentOperation.map((message) =>
+                            <ListItem button>
+                                <ListItemText primary={message} />
+                            </ListItem>
+                    )}
+                    </List>
+                </Typography>
                 <Button variant="contained" color="primary" onClick={this.myClick}>
                   Perform
                 </Button>
